@@ -51,6 +51,7 @@
             android:src="@drawable/save" />
 
         <ImageButton
+            android:id="@+id/print_btn"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -58,6 +59,27 @@
     </LinearLayout>
 
     <!-- Custom View -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:orientation="horizontal" >
+    <EditText
+        android:id="@+id/project_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Animation's name"
+        android:inputType="textPersonName"
+        android:singleLine="true"
+        android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/validate_project_name_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:text="OK" />
+    </LinearLayout>
 
     <ca.uqac.drawbd.DrawingView
         android:id="@+id/drawing"

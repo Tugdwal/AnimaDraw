@@ -13,11 +13,13 @@ import android.provider.MediaStore;
         import android.app.AlertDialog;
         import android.app.Dialog;
         import android.content.DialogInterface;
-        import android.view.Menu;
+import android.util.Log;
+import android.view.Menu;
         import android.view.View;
         import android.view.View.OnClickListener;
         import android.widget.Button;
-        import android.widget.ImageButton;
+import android.widget.EditText;
+import android.widget.ImageButton;
         import android.widget.LinearLayout;
         import android.widget.SeekBar;
         import android.widget.TextView;
@@ -38,7 +40,9 @@ public class MainActivity extends Activity implements OnClickListener {
     //custom drawing view
     private DrawingView drawView;
     //buttons
-    private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn, opacityBtn;
+    private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn, opacityBtn, printBtn;
+    private Button validateProjectNameBtn;
+    private EditText projectName;
     //sizes
     private float smallBrush, mediumBrush, largeBrush;
 
@@ -82,6 +86,14 @@ public class MainActivity extends Activity implements OnClickListener {
         //opacity
         opacityBtn = (ImageButton)findViewById(R.id.opacity_btn);
         opacityBtn.setOnClickListener(this);
+
+        printBtn = (ImageButton)findViewById(R.id.print_btn);
+        opacityBtn.setOnClickListener(this);
+
+        validateProjectNameBtn = (Button)findViewById(R.id.validate_project_name_btn);
+        opacityBtn.setOnClickListener(this);
+
+        projectName = (EditText)findViewById(R.id.project_name);
     }
 
     @Override
@@ -220,6 +232,8 @@ public class MainActivity extends Activity implements OnClickListener {
                             getContentResolver(), drawView.getDrawingCache(),
                             UUID.randomUUID().toString()+".png", "drawing");
                     //feedback
+                    Log.d("INFO:",imgSaved);
+
                     if(imgSaved!=null){
                         Toast savedToast = Toast.makeText(getApplicationContext(),
                                 "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
