@@ -1,4 +1,4 @@
-package com.example.benja.drawing_app;
+package ca.uqac.drawbd;
 
 import org.junit.Test;
 

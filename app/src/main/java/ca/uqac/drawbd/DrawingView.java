@@ -1,4 +1,4 @@
-package com.example.benja.drawing_app;
+package ca.uqac.drawbd;
 
 
 import android.content.Context;
@@ -119,7 +119,7 @@ public class DrawingView extends View {
 		else{
 			//pattern
 			int patternID = getResources().getIdentifier(
-					newColor, "drawable", "com.example.benja.drawing_app");
+					newColor, "drawable", "ca.uqac.drawbd");
 			//decode 
 			Bitmap patternBMP = BitmapFactory.decodeResource(getResources(), patternID);
 			//create shader

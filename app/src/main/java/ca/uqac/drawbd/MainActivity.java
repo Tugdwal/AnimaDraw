@@ -1,6 +1,5 @@
-package com.example.benja.drawing_app;
+package ca.uqac.drawbd;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 
@@ -9,8 +8,7 @@ import android.os.Bundle;
 
         import java.util.UUID;
 
-        import android.os.Bundle;
-        import android.provider.MediaStore;
+import android.provider.MediaStore;
         import android.app.Activity;
         import android.app.AlertDialog;
         import android.app.Dialog;
@@ -88,8 +86,8 @@ public class MainActivity extends Activity implements OnClickListener {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu, menu);
+        // Inflate the main; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
