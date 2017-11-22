@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Drawing_app.iml" filepath="$PROJECT_DIR$/Drawing_app.iml" />
-      <module fileurl="file://F:\Users\Tudal\Documents\Android\SosDrawIt\Drawing_app.iml" filepath="F:\Users\Tudal\Documents\Android\SosDrawIt\Drawing_app.iml" />
-      <module fileurl="file://D:\Android_project\Drawing_app\SosDrawIt.iml" filepath="D:\Android_project\Drawing_app\SosDrawIt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DrawBD.iml" filepath="$PROJECT_DIR$/DrawBD.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

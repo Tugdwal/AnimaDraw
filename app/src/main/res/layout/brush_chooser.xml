@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:contentDescription="@string/sml"
-        android:src="@drawable/small" />
+        android:src="@drawable/brush_small" />
 
     <ImageButton
         android:id="@+id/medium_brush"
@@ -18,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:contentDescription="@string/med"
-        android:src="@drawable/medium" />
+        android:src="@drawable/brush_medium" />
 
     <ImageButton
         android:id="@+id/large_brush"
@@ -26,6 +27,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:contentDescription="@string/lrg"
-        android:src="@drawable/large" />
+        android:src="@drawable/brush_large" />
 
 </LinearLayout>

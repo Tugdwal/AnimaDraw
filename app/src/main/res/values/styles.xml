@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Button" />
+
+    <style name="Button.Color">
+        <item name="android:layout_width">@dimen/button_size</item>
+        <item name="android:layout_height">@dimen/button_size</item>
+        <item name="android:src">@drawable/color_button</item>
+        <item name="android:onClick">selectColor</item>
+    </style>
+
+    <style name="Margin">
+        <item name="android:layout_marginLeft">@dimen/spacing</item>
+        <item name="android:layout_marginRight">@dimen/spacing</item>
+    </style>
+
+    <style name="ToolbarElement" parent="Margin">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="ToolbarElement.Text">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Button.Image" parent="ToolbarElement">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <style name="Button.Image.First">
+        <item name="android:layout_marginLeft">0dp</item>
+    </style>
+
+    <style name="Button.Image.Last">
+        <item name="android:layout_marginRight">0dp</item>
+    </style>
+
+    <style name="Spacer" parent="ToolbarElement">
+        <item name="android:layout_width">2dp</item>
+        <item name="android:background">@color/grey</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+    </style>
+</resources>
