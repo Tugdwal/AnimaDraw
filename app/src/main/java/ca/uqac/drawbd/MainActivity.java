@@ -3,37 +3,50 @@ package ca.uqac.drawbd;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.UUID;
-
-public class MainActivity extends AppCompatActivity implements OnClickListener
+public class MainActivity extends AppCompatActivity
 {
     private Toolbar toolbar;
-
-    //custom drawing view
+    private ImageButton btnColor, btnBrush, btnEraser, btnOpacity, btnLockRotation, btnPrev, btnNext, btnCopy, btnDelete, btnNew, btnSave, btnAnimate;
+    private TextView indexText;
     private DrawingView drawView;
-    //buttons
-    private ImageButton currPaint, drawBtn, eraseBtn, newBtn, saveBtn, opacityBtn, printBtn;
-    private Button validateProjectNameBtn;
-    private EditText projectName;
-    //sizes
-    private float smallBrush, mediumBrush, largeBrush;
+
+    private boolean locked;
+
+    private float brushSmall, brushMedium, brushLarge;
+
+    private Handler handler = new Handler();
+    private Runnable animation = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            if (running = drawView.nextFrame()) {
+                handler.postDelayed(this, speed);
+            } else {
+                btnAnimate.setImageResource(R.drawable.ic_animate);
+                drawView.stop();
+            }
+            indexText.setText(String.valueOf(drawView.frame()));
+        }
+    };;
+
+    private int speed = 100;
+    private boolean running;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -44,270 +57,339 @@ public class MainActivity extends AppCompatActivity implements OnClickListener
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //get drawing view
-        drawView = (DrawingView) findViewById(R.id.drawing);
+        LinearLayout colorsLayout = findViewById(R.id.colors);
+        btnColor = (ImageButton) colorsLayout.getChildAt(0);
 
-        //get the palette and first color_button button
-        LinearLayout paintLayout = (LinearLayout) findViewById(R.id.paint_colors);
-        currPaint = (ImageButton) paintLayout.getChildAt(0);
-        currPaint.setImageDrawable(getResources().getDrawable(R.drawable.color_button_pressed));
+        btnBrush = findViewById(R.id.btn_brush);
+        btnEraser = findViewById(R.id.btn_eraser);
+        btnOpacity = findViewById(R.id.btn_opacity);
+        btnLockRotation = findViewById(R.id.btn_lock_rotation);
+        btnPrev = findViewById(R.id.btn_prev);
+        btnNext = findViewById(R.id.btn_next);
+        btnCopy = findViewById(R.id.btn_copy);
+        btnDelete = findViewById(R.id.btn_delete);
+        btnNew = findViewById(R.id.btn_new);
+        btnSave = findViewById(R.id.btn_save);
+        btnAnimate = findViewById(R.id.btn_animate);
 
-        //sizes from dimensions
-        smallBrush = getResources().getInteger(R.integer.small_size);
-        mediumBrush = getResources().getInteger(R.integer.medium_size);
-        largeBrush = getResources().getInteger(R.integer.large_size);
+        drawView = findViewById(R.id.drawing);
 
-        //draw button
-        drawBtn = (ImageButton) findViewById(R.id.btn_brush);
-        drawBtn.setOnClickListener(this);
+        btnColor.setImageDrawable(getResources().getDrawable(R.drawable.color_button_pressed));
+        drawView.setColor(btnColor.getTag().toString());
 
-        //set initial size
-        drawView.setBrushSize(mediumBrush);
+        indexText = findViewById(R.id.indexImage);
 
-        //erase button
-        eraseBtn = (ImageButton) findViewById(R.id.btn_erase);
-        eraseBtn.setOnClickListener(this);
+        brushSmall = getResources().getInteger(R.integer.small_size);
+        brushMedium = getResources().getInteger(R.integer.medium_size);
+        brushLarge = getResources().getInteger(R.integer.large_size);
 
-        //new button
-        newBtn = (ImageButton) findViewById(R.id.btn_new);
-        newBtn.setOnClickListener(this);
+        drawView.setBrushSize(brushMedium);
 
-        //save button
-        saveBtn = (ImageButton) findViewById(R.id.btn_save);
-        saveBtn.setOnClickListener(this);
+        btnBrush.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                final Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setTitle(R.string.msg_brush_size);
+                dialog.setContentView(R.layout.brush_chooser);
 
-        //ic_opacity
-        opacityBtn = (ImageButton) findViewById(R.id.btn_opacity);
-        opacityBtn.setOnClickListener(this);
+                ImageButton smallBtn = dialog.findViewById(R.id.small_brush);
+                smallBtn.setOnClickListener(new OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        drawView.setBrushSize(brushSmall);
+                        dialog.dismiss();
+                    }
+                });
 
-        //printBtn = (ImageButton)findViewById(R.id.print_btn);
-        opacityBtn.setOnClickListener(this);
+                ImageButton mediumBtn = dialog.findViewById(R.id.medium_brush);
+                mediumBtn.setOnClickListener(new OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        drawView.setBrushSize(brushMedium);
+                        dialog.dismiss();
+                    }
+                });
 
-        //validateProjectNameBtn = (Button)findViewById(R.id.validate_project_name_btn);
-        opacityBtn.setOnClickListener(this);
+                ImageButton largeBtn = dialog.findViewById(R.id.large_brush);
+                largeBtn.setOnClickListener(new OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        drawView.setBrushSize(brushLarge);
+                        dialog.dismiss();
+                    }
+                });
 
-        //projectName = (EditText)findViewById(R.id.project_name);
+                dialog.show();
+            }
+        });
+
+        btnEraser.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if (drawView.erase()) {
+                    btnEraser.setImageResource(R.drawable.ic_eraser_on);
+                } else {
+                    btnEraser.setImageResource(R.drawable.ic_eraser);
+                }
+            }
+        });
+
+        btnOpacity.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                final Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setTitle(R.string.msg_opacity_level);
+                dialog.setContentView(R.layout.opacity_chooser);
+
+                final TextView text = dialog.findViewById(R.id.opq_txt);
+                final SeekBar opacity = dialog.findViewById(R.id.opacity_seek);
+
+                opacity.setMax(100);
+
+                text.setText(String.format("%s%%", drawView.getPaintAlpha()));
+                opacity.setProgress(drawView.getPaintAlpha());
+
+                opacity.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
+                {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+                    {
+                        text.setText(String.format("%s%%", progress));
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {}
+                });
+
+                Button btnSelect = dialog.findViewById(R.id.btn_select);
+                btnSelect.setOnClickListener(new OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        drawView.setPaintAlpha(opacity.getProgress());
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+            }
+        });
+
+        btnLockRotation.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if (locked) {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Unlock orientation ?")
+                            .setMessage("(It will erase your animation!)")
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                            {
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    locked = false;
+
+                                    btnLockRotation.setImageResource(R.drawable.ic_screen_rotation);
+                                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                            {
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    dialog.cancel();
+                                }
+                            })
+                            .show();
+                } else {
+                    locked = true;
+                    btnLockRotation.setImageResource(R.drawable.ic_screen_lock_rotation);
+                    switch (getResources().getConfiguration().orientation) {
+                        case Configuration.ORIENTATION_PORTRAIT:
+                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                            break;
+                        case Configuration.ORIENTATION_LANDSCAPE:
+                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        });
+
+        btnLockRotation.callOnClick();
+
+        btnPrev.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                indexText.setText(String.valueOf(drawView.prev()));
+            }
+        });
+
+        btnNext.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                indexText.setText(String.valueOf(drawView.next()));
+            }
+        });
+
+        btnCopy.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                indexText.setText(String.valueOf(drawView.copy()));
+            }
+        });
+
+        btnDelete.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                indexText.setText(String.valueOf(drawView.delete()));
+            }
+        });
+
+        btnNew.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("New drawing")
+                        .setMessage("Start new drawing (you will lose the current drawing)?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                drawView.clear();
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+        btnSave.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                /*
+                //save drawing
+                AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
+                saveDialog.setTitle("Save drawing");
+                saveDialog.setMessage("Save drawing to device Gallery?");
+                saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        //save drawing
+                        drawView.setDrawingCacheEnabled(true);
+                        //attempt to save
+                        String imgSaved = MediaStore.Images.Media.insertImage(
+                                getContentResolver(), drawView.getDrawingCache(),
+                                UUID.randomUUID().toString() + ".png", "drawing");
+                        //feedback
+                        Log.d("INFO:", imgSaved);
+                        if (imgSaved != null) {
+                            Toast savedToast = Toast.makeText(getApplicationContext(),
+                                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
+                            savedToast.show();
+                        } else {
+                            Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+                            unsavedToast.show();
+                        }
+                        drawView.destroyDrawingCache();
+                    }
+                });
+                saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        dialog.cancel();
+                    }
+                });
+                saveDialog.show();
+                */
+            }
+        });
+
+        btnAnimate.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                running = !running;
+                if (running && drawView.startAnimationFrom(0)) {
+                    btnAnimate.setImageResource(R.drawable.ic_animate_on);
+                    indexText.setText(String.valueOf(drawView.frame()));
+                    handler.postDelayed(animation, speed);
+                } else {
+                    btnAnimate.setImageResource(R.drawable.ic_animate);
+                    drawView.stop();
+                }
+            }
+        });
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
+    public void onDestroy()
     {
-        // Inflate the main; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+        super.onDestroy();
+        handler.removeCallbacks(animation);
     }
 
-    //user clicked paint
+    @Override
+    public void onConfigurationChanged(Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+
+        btnLockRotation.callOnClick();
+    }
+
     public void selectColor(View view)
     {
-        //use chosen color_button
-
-        //set erase false
-        drawView.setErase(false);
-        drawView.setPaintAlpha(100);
-        drawView.setBrushSize(drawView.getLastBrushSize());
-
-        if (view != currPaint) {
+        if (view != btnColor) {
             ImageButton imgView = (ImageButton) view;
-            String color = view.getTag().toString();
-            drawView.setColor(color);
-            //update ui
+            drawView.setColor(view.getTag().toString());
+
             imgView.setImageDrawable(getResources().getDrawable(R.drawable.color_button_pressed));
-            currPaint.setImageDrawable(getResources().getDrawable(R.drawable.color_button));
-            currPaint = (ImageButton) view;
-        }
-    }
-
-    @Override
-    public void onClick(View view)
-    {
-
-        if (view.getId() == R.id.btn_brush) {
-            //draw button clicked
-            final Dialog brushDialog = new Dialog(this);
-            brushDialog.setTitle("Brush size:");
-            brushDialog.setContentView(R.layout.brush_chooser);
-            //listen for clicks on size buttons
-            ImageButton smallBtn = (ImageButton) brushDialog.findViewById(R.id.small_brush);
-            smallBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(false);
-                    drawView.setBrushSize(smallBrush);
-                    drawView.setLastBrushSize(smallBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            ImageButton mediumBtn = (ImageButton) brushDialog.findViewById(R.id.medium_brush);
-            mediumBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(false);
-                    drawView.setBrushSize(mediumBrush);
-                    drawView.setLastBrushSize(mediumBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            ImageButton largeBtn = (ImageButton) brushDialog.findViewById(R.id.large_brush);
-            largeBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(false);
-                    drawView.setBrushSize(largeBrush);
-                    drawView.setLastBrushSize(largeBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            //show and wait for user interaction
-            brushDialog.show();
-        } else if (view.getId() == R.id.btn_erase) {
-            //switch to erase - choose size
-            final Dialog brushDialog = new Dialog(this);
-            brushDialog.setTitle("Eraser size:");
-            brushDialog.setContentView(R.layout.brush_chooser);
-            //size buttons
-            ImageButton smallBtn = (ImageButton) brushDialog.findViewById(R.id.small_brush);
-            smallBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(true);
-                    drawView.setBrushSize(smallBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            ImageButton mediumBtn = (ImageButton) brushDialog.findViewById(R.id.medium_brush);
-            mediumBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(true);
-                    drawView.setBrushSize(mediumBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            ImageButton largeBtn = (ImageButton) brushDialog.findViewById(R.id.large_brush);
-            largeBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setErase(true);
-                    drawView.setBrushSize(largeBrush);
-                    brushDialog.dismiss();
-                }
-            });
-            brushDialog.show();
-        } else if (view.getId() == R.id.btn_new) {
-            //new button
-            AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
-            newDialog.setTitle("New drawing");
-            newDialog.setMessage("Start new drawing (you will lose the current drawing)?");
-            newDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
-            {
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    drawView.startNew();
-                    dialog.dismiss();
-                }
-            });
-            newDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-            {
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    dialog.cancel();
-                }
-            });
-            newDialog.show();
-        } else if (view.getId() == R.id.btn_save) {
-            //save drawing
-            AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
-            saveDialog.setTitle("Save drawing");
-            saveDialog.setMessage("Save drawing to device Gallery?");
-            saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
-            {
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    //save drawing
-                    drawView.setDrawingCacheEnabled(true);
-                    //attempt to save
-                    String imgSaved = MediaStore.Images.Media.insertImage(
-                            getContentResolver(), drawView.getDrawingCache(),
-                            UUID.randomUUID().toString() + ".png", "drawing");
-                    //feedback
-                    Log.d("INFO:", imgSaved);
-                    if (imgSaved != null) {
-                        Toast savedToast = Toast.makeText(getApplicationContext(),
-                                "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-                        savedToast.show();
-                    } else {
-                        Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                                "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-                        unsavedToast.show();
-                    }
-                    drawView.destroyDrawingCache();
-                }
-            });
-            saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-            {
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    dialog.cancel();
-                }
-            });
-            saveDialog.show();
-        } else if (view.getId() == R.id.btn_opacity) {
-            //launch ic_opacity chooser
-            final Dialog seekDialog = new Dialog(this);
-            seekDialog.setTitle("Opacity level:");
-            seekDialog.setContentView(R.layout.opacity_chooser);
-            //get ui elements
-            final TextView seekTxt = (TextView) seekDialog.findViewById(R.id.opq_txt);
-            final SeekBar seekOpq = (SeekBar) seekDialog.findViewById(R.id.opacity_seek);
-            //set max
-            seekOpq.setMax(100);
-            //show current level
-            int currLevel = drawView.getPaintAlpha();
-            seekTxt.setText(currLevel + "%");
-            seekOpq.setProgress(currLevel);
-            //update as user interacts
-            seekOpq.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
-            {
-
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-                {
-                    seekTxt.setText(Integer.toString(progress) + "%");
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
-
-            });
-            //listen for clicks on ok
-            Button opqBtn = (Button) seekDialog.findViewById(R.id.opq_ok);
-            opqBtn.setOnClickListener(new OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    drawView.setPaintAlpha(seekOpq.getProgress());
-                    seekDialog.dismiss();
-                }
-            });
-            //show dialog
-            seekDialog.show();
+            btnColor.setImageDrawable(getResources().getDrawable(R.drawable.color_button));
+            btnColor = imgView;
         }
     }
 }

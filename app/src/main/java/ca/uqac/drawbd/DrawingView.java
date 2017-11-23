@@ -16,36 +16,29 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.LinkedList;
+
 public class DrawingView extends View
 {
-    //drawing path
-    private Path drawPath;
-    //drawing and canvas paint
-    private Paint drawPaint, canvasPaint;
-    //initial color_button
-    private int paintColor = 0xFF660000, paintAlpha = 255;
-    //canvas
-    private Canvas drawCanvas;
-    //canvas bitmap
-    private Bitmap canvasBitmap;
-    //ic_brush sizes
-    private float brushSize, lastBrushSize;
-    //erase flag
+    private LinkedList<Bitmap> canvasList = new LinkedList<>();
+    private int index = 0;
+
+    private int paintColor;
+    private int alpha = 255;
+    private float brushSize;
     private boolean erase = false;
+
+    private Path drawPath;
+    private Paint drawPaint, canvasPaint;
+    private Canvas drawing;
+
+    private boolean running;
 
     public DrawingView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        setupDrawing();
-    }
 
-    //setup drawing
-    private void setupDrawing()
-    {
-
-        //prepare for drawing and setup paint stroke properties
         brushSize = getResources().getInteger(R.integer.medium_size);
-        lastBrushSize = brushSize;
         drawPath = new Path();
         drawPaint = new Paint();
         drawPaint.setColor(paintColor);
@@ -57,121 +50,186 @@ public class DrawingView extends View
         canvasPaint = new Paint(Paint.DITHER_FLAG);
     }
 
-    //size assigned to view
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh)
     {
         super.onSizeChanged(w, h, oldw, oldh);
-        canvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        drawCanvas = new Canvas(canvasBitmap);
+
+        clear();
     }
 
-    //draw the view - will be called after touch event
     @Override
     protected void onDraw(Canvas canvas)
     {
-        canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
+        if (!running && index > 0) {
+            canvasPaint.setAlpha(100);
+            canvas.drawBitmap(canvasList.get(index-1), 0, 0, canvasPaint);
+        }
+        canvasPaint.setAlpha(255);
+        canvas.drawBitmap(canvasList.get(index), 0, 0, canvasPaint);
         canvas.drawPath(drawPath, drawPaint);
     }
 
-    //register user touches as drawing action
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
-        float touchX = event.getX();
-        float touchY = event.getY();
-        //respond to down, move and up events
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                drawPath.moveTo(touchX, touchY);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                drawPath.lineTo(touchX, touchY);
-                break;
-            case MotionEvent.ACTION_UP:
-                drawPath.lineTo(touchX, touchY);
-                drawCanvas.drawPath(drawPath, drawPaint);
-                drawPath.reset();
-                break;
-            default:
-                return false;
-        }
-        //redraw
-        invalidate();
-        return true;
+        if (!running) {
+            float touchX = event.getX();
+            float touchY = event.getY();
 
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    drawPath.moveTo(touchX, touchY);
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    drawPath.lineTo(touchX, touchY);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    drawPath.lineTo(touchX, touchY);
+                    drawing.drawPath(drawPath, drawPaint);
+                    drawPath.reset();
+                    break;
+                default:
+                    return false;
+            }
+
+            invalidate();
+        }
+
+        return true;
     }
 
-    //update color_button
     public void setColor(String newColor)
     {
         invalidate();
-        //check whether color_button value or pattern name
+
         if (newColor.startsWith("#")) {
             paintColor = Color.parseColor(newColor);
             drawPaint.setColor(paintColor);
+            drawPaint.setAlpha(alpha);
             drawPaint.setShader(null);
         } else {
-            //pattern
-            int patternID = getResources().getIdentifier(
-                    newColor, "drawable", "ca.uqac.drawbd");
-            //decode
-            Bitmap patternBMP = BitmapFactory.decodeResource(getResources(), patternID);
-            //create shader
-            BitmapShader patternBMPshader = new BitmapShader(patternBMP,
-                    Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-            //color_button and shader
+            int id = getResources().getIdentifier(newColor, "drawable", "ca.uqac.drawbd");
+            Bitmap pattern = BitmapFactory.decodeResource(getResources(), id);
+            BitmapShader shader = new BitmapShader(pattern, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
             drawPaint.setColor(0xFFFFFFFF);
-            drawPaint.setShader(patternBMPshader);
+            drawPaint.setShader(shader);
+            drawPaint.setAlpha(alpha);
         }
     }
 
-    //set ic_brush size
     public void setBrushSize(float newSize)
     {
-        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                newSize, getResources().getDisplayMetrics());
-        brushSize = pixelAmount;
+        brushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize, getResources().getDisplayMetrics());
         drawPaint.setStrokeWidth(brushSize);
     }
 
-    public float getLastBrushSize()
+    public int getPaintAlpha()
     {
-        return lastBrushSize;
+        return Math.round((float) alpha / 255 * 100);
     }
 
-    //get and set last ic_brush size
-    public void setLastBrushSize(float lastSize)
+    public void setPaintAlpha(int newAlpha)
     {
-        lastBrushSize = lastSize;
+        alpha = Math.round((float) newAlpha / 100 * 255);
+        drawPaint.setColor(paintColor);
+        drawPaint.setAlpha(alpha);
     }
 
-    //set erase true or false
-    public void setErase(boolean isErase)
+    public boolean erase()
     {
-        erase = isErase;
-        if (erase) drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        else drawPaint.setXfermode(null);
+        erase = !erase;
+
+        if (erase) {
+            drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        } else {
+            drawPaint.setXfermode(null);
+        }
+
+        return erase;
     }
 
-    //start new drawing
-    public void startNew()
+    public int prev()
     {
-        drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+        if (index > 0) {
+            index--;
+            drawing = new Canvas(canvasList.get(index));
+        }
+        invalidate();
+        return index;
+    }
+
+    public int next()
+    {
+        if (++index == canvasList.size()) {
+            canvasList.add(Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888));
+        }
+        drawing = new Canvas(canvasList.get(index));
+        invalidate();
+        return index;
+    }
+
+    public int copy()
+    {
+        Bitmap bmp = canvasList.get(index++);
+        canvasList.add(index, bmp.copy(bmp.getConfig(), true));
+        drawing = new Canvas(canvasList.get(index));
+        return index;
+    }
+
+    public int delete()
+    {
+        canvasList.remove(index);
+        if (index == canvasList.size()) {
+            index--;
+        }
+        if (index < 0) {
+            canvasList.add(Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888));
+            index++;
+        }
+        drawing = new Canvas(canvasList.get(index));
+        invalidate();
+        return index;
+    }
+
+    public void clear()
+    {
+        index = 0;
+        canvasList.clear();
+        canvasList.add(Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888));
+        drawing = new Canvas(canvasList.getFirst());
         invalidate();
     }
 
-    //return current alpha
-    public int getPaintAlpha()
+    public int frame()
     {
-        return Math.round((float) paintAlpha / 255 * 100);
+        return index;
     }
 
-    //set alpha
-    public void setPaintAlpha(int newAlpha)
+    public boolean startAnimationFrom(int from)
     {
-        paintAlpha = Math.round((float) newAlpha / 100 * 255);
-        drawPaint.setColor(paintColor);
-        drawPaint.setAlpha(paintAlpha);
+        if (from < canvasList.size()) {
+            index = from;
+        }
+
+        invalidate();
+
+        running = true;
+
+        return index + 1 < canvasList.size();
+    }
+
+    public void stop()
+    {
+        running = false;
+    }
+
+    public boolean nextFrame()
+    {
+        index++;
+
+        invalidate();
+
+        return index + 1 < canvasList.size();
     }
 }

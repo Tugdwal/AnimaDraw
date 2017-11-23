@@ -45,13 +45,18 @@
 
                         <ImageButton
                             style="@style/Button.Image"
-                            android:id="@+id/btn_erase"
+                            android:id="@+id/btn_eraser"
                             android:src="@drawable/ic_eraser" />
 
                         <ImageButton
                             style="@style/Button.Image"
                             android:id="@+id/btn_opacity"
                             android:src="@drawable/ic_opacity" />
+
+                        <ImageButton
+                            style="@style/Button.Image"
+                            android:id="@+id/btn_lock_rotation"
+                            android:src="@drawable/ic_screen_lock_rotation" />
 
                         <View style="@style/Spacer" />
 
@@ -62,12 +67,18 @@
 
                         <TextView
                             style="@style/ToolbarElement.Text"
+                            android:id="@+id/indexImage"
                             android:text="0" />
 
                         <ImageButton
                             style="@style/Button.Image"
                             android:id="@+id/btn_next"
                             android:src="@drawable/ic_next" />
+
+                        <ImageButton
+                            style="@style/Button.Image"
+                            android:id="@+id/btn_copy"
+                            android:src="@drawable/ic_copy" />
 
                         <ImageButton
                             style="@style/Button.Image"
@@ -84,12 +95,12 @@
                         <ImageButton
                             style="@style/Button.Image"
                             android:id="@+id/btn_save"
-                            android:src="@drawable/ic_save_white_24dp" />
+                            android:src="@drawable/ic_save_white" />
 
                         <ImageButton
                             style="@style/Button.Image.Last"
                             android:id="@+id/btn_animate"
-                            android:src="@drawable/ic_animate_white_24dp" />
+                            android:src="@drawable/ic_animate" />
                     </LinearLayout>
                 </HorizontalScrollView>
 
@@ -105,15 +116,10 @@
                 android:layout_height="match_parent">
 
                 <LinearLayout
-                    android:id="@+id/paint_colors"
+                    android:id="@+id/colors"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
-                    <ImageButton
-                        style="@style/Button.Color"
-                        android:background="#FF660000"
-                        android:tag="#FF660000" />
 
                     <ImageButton
                         style="@style/Button.Color"
@@ -149,6 +155,11 @@
                         style="@style/Button.Color"
                         android:background="#FF000000"
                         android:tag="#FF000000" />
+
+                    <ImageButton
+                        style="@style/Button.Color"
+                        android:background="#FF660000"
+                        android:tag="#FF660000" />
 
                     <ImageButton
                         style="@style/Button.Color"
