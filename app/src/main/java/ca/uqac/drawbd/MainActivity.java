@@ -2,13 +2,16 @@ package ca.uqac.drawbd;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -17,6 +20,9 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -24,7 +30,6 @@ public class MainActivity extends AppCompatActivity
     private ImageButton btnColor, btnBrush, btnEraser, btnOpacity, btnLockRotation, btnPrev, btnNext, btnCopy, btnDelete, btnNew, btnSave, btnAnimate;
     private TextView indexText;
     private DrawingView drawView;
-
     private boolean locked;
 
     private float brushSmall, brushMedium, brushLarge;
@@ -53,7 +58,6 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -307,9 +311,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                /*
+
                 //save drawing
-                AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
+                AlertDialog.Builder saveDialog = new AlertDialog.Builder(MainActivity.this);
                 saveDialog.setTitle("Save drawing");
                 saveDialog.setMessage("Save drawing to device Gallery?");
                 saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
@@ -317,13 +321,33 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(DialogInterface dialog, int which)
                     {
                         //save drawing
+                        drawView.toggleSaveMode(true);
+                        drawView.startAnimationFrom(0);
+                        do{
+                            drawView.setDrawingCacheEnabled(true);
+                            //attempt to save
+                            String imgSaved = MediaStore.Images.Media.insertImage(
+                                    getContentResolver(), drawView.getDrawingCache(),
+                                    UUID.randomUUID().toString() + ".png", "drawing");
+                            //feedback
+                            Log.d("INFO:", imgSaved);
+
+                            if (imgSaved != null) {
+                                Toast savedToast = Toast.makeText(getApplicationContext(),
+                                        "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
+                                savedToast.show();
+                            } else {
+                                Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                                        "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+                                unsavedToast.show();
+                            }
+                            drawView.destroyDrawingCache();
+                        } while(drawView.nextFrame());
                         drawView.setDrawingCacheEnabled(true);
                         //attempt to save
                         String imgSaved = MediaStore.Images.Media.insertImage(
                                 getContentResolver(), drawView.getDrawingCache(),
                                 UUID.randomUUID().toString() + ".png", "drawing");
-                        //feedback
-                        Log.d("INFO:", imgSaved);
                         if (imgSaved != null) {
                             Toast savedToast = Toast.makeText(getApplicationContext(),
                                     "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
@@ -334,6 +358,8 @@ public class MainActivity extends AppCompatActivity
                             unsavedToast.show();
                         }
                         drawView.destroyDrawingCache();
+                        drawView.toggleSaveMode(false);
+                        drawView.stop();
                     }
                 });
                 saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
@@ -344,7 +370,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
                 saveDialog.show();
-                */
+
             }
         });
 

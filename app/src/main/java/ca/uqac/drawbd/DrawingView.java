@@ -22,7 +22,7 @@ public class DrawingView extends View
 {
     private LinkedList<Bitmap> canvasList = new LinkedList<>();
     private int index = 0;
-
+    private boolean save_mode=false;
     private int paintColor;
     private int alpha = 255;
     private float brushSize;
@@ -48,6 +48,7 @@ public class DrawingView extends View
         drawPaint.setStrokeJoin(Paint.Join.ROUND);
         drawPaint.setStrokeCap(Paint.Cap.ROUND);
         canvasPaint = new Paint(Paint.DITHER_FLAG);
+
     }
 
     @Override
@@ -61,7 +62,9 @@ public class DrawingView extends View
     @Override
     protected void onDraw(Canvas canvas)
     {
-        if (!running && index > 0) {
+
+
+        if (!running && index > 0 && !save_mode) {
             canvasPaint.setAlpha(100);
             canvas.drawBitmap(canvasList.get(index-1), 0, 0, canvasPaint);
         }
@@ -97,6 +100,10 @@ public class DrawingView extends View
         }
 
         return true;
+    }
+
+    public void toggleSaveMode(boolean bool){
+        save_mode = bool;
     }
 
     public void setColor(String newColor)
