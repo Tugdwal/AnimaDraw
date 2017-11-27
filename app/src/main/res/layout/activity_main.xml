@@ -44,6 +44,11 @@
                             android:src="@drawable/ic_brush" />
 
                         <ImageButton
+                            style="@style/Button.Image.First"
+                            android:id="@+id/btn_line"
+                            android:src="@drawable/ic_line" />
+
+                        <ImageButton
                             style="@style/Button.Image"
                             android:id="@+id/btn_eraser"
                             android:src="@drawable/ic_eraser" />

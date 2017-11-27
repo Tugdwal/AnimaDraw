@@ -22,11 +22,14 @@ public class DrawingView extends View
 {
     private LinkedList<Bitmap> canvasList = new LinkedList<>();
     private int index = 0;
-    private boolean save_mode=false;
     private int paintColor;
     private int alpha = 255;
     private float brushSize;
+    private boolean line = false;
     private boolean erase = false;
+
+    private float lx;
+    private float ly;
 
     private Path drawPath;
     private Paint drawPaint, canvasPaint;
@@ -48,7 +51,6 @@ public class DrawingView extends View
         drawPaint.setStrokeJoin(Paint.Join.ROUND);
         drawPaint.setStrokeCap(Paint.Cap.ROUND);
         canvasPaint = new Paint(Paint.DITHER_FLAG);
-
     }
 
     @Override
@@ -56,15 +58,13 @@ public class DrawingView extends View
     {
         super.onSizeChanged(w, h, oldw, oldh);
 
-        clear();
+        clear(w, h);
     }
 
     @Override
     protected void onDraw(Canvas canvas)
     {
-
-
-        if (!running && index > 0 && !save_mode) {
+        if (!running && index > 0) {
             canvasPaint.setAlpha(100);
             canvas.drawBitmap(canvasList.get(index-1), 0, 0, canvasPaint);
         }
@@ -83,11 +83,21 @@ public class DrawingView extends View
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     drawPath.moveTo(touchX, touchY);
+                    lx = touchX;
+                    ly = touchY;
                     break;
                 case MotionEvent.ACTION_MOVE:
+                    if (line) {
+                        drawPath.reset();
+                        drawPath.moveTo(lx, ly);
+                    }
                     drawPath.lineTo(touchX, touchY);
                     break;
                 case MotionEvent.ACTION_UP:
+                    if (line) {
+                        drawPath.reset();
+                        drawPath.moveTo(lx, ly);
+                    }
                     drawPath.lineTo(touchX, touchY);
                     drawing.drawPath(drawPath, drawPaint);
                     drawPath.reset();
@@ -100,10 +110,6 @@ public class DrawingView extends View
         }
 
         return true;
-    }
-
-    public void toggleSaveMode(boolean bool){
-        save_mode = bool;
     }
 
     public void setColor(String newColor)
@@ -141,6 +147,12 @@ public class DrawingView extends View
         alpha = Math.round((float) newAlpha / 100 * 255);
         drawPaint.setColor(paintColor);
         drawPaint.setAlpha(alpha);
+    }
+
+    public boolean toggleLineMode()
+    {
+        line = !line;
+        return line;
     }
 
     public boolean erase()
@@ -201,9 +213,14 @@ public class DrawingView extends View
 
     public void clear()
     {
+        clear(getWidth(), getHeight());
+    }
+
+    public void clear(int w, int h)
+    {
         index = 0;
         canvasList.clear();
-        canvasList.add(Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888));
+        canvasList.add(Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888));
         drawing = new Canvas(canvasList.getFirst());
         invalidate();
     }
